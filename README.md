@@ -50,9 +50,9 @@ The live coaching experience uses a Groq API key when available. If no key is se
 
 ## Screenshots
 
-![Dashboard](./public/screenshot-dashboard.svg)
-![Weekly planner](./public/screenshot-weekly.svg)
-![AI coach](./public/screenshot-coach.svg)
+![Dashboard](./public/screenshot-dashboard.png)
+![Weekly planner](./public/screenshot-weekly.png)
+![AI coach](./public/screenshot-coach.png)
 
 ## How to run locally
 
