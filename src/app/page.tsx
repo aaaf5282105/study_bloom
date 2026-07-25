@@ -60,7 +60,7 @@ export default function Home() {
       const data = await response.json();
       setCoachReply(data.reply || "I’m ready to help you build momentum.");
     } catch {
-      setCoachReply("Your coach is ready. Add an OpenAI key to unlock richer replies.");
+      setCoachReply("Your coach is ready. Add a Groq key to unlock richer replies.");
     }
 
     setStatus("Plan created successfully.");
