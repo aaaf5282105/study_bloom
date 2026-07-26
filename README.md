@@ -1,6 +1,6 @@
 # StudyBloom AI
 
-StudyBloom AI is a student-first study planner that turns a busy week into a calm, realistic weekly schedule. It is built for students who are balancing coursework, deadlines, work, and personal responsibilities in a single week.
+StudyBloom AI is a student-first study planner that turns a busy week into a calm, realistic weekly schedule. It is designed for students who need structure without feeling overwhelmed by too many tasks.
 
 ## Live demo
 
@@ -18,6 +18,12 @@ StudyBloom AI lets students:
 - receive AI-style coaching advice tailored to their current workload
 - save their latest plan locally in the browser for easy reuse
 - use a calm and simple interface that reduces mental overload
+
+## Project highlights
+
+- Smarter pacing that balances focus days with recovery days
+- Priority and deadline adaptation controls for changing weeks
+- A simple AI coach experience that works even without a Groq key
 
 ## How it works
 

@@ -169,7 +169,7 @@ export default function Home() {
         <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_25px_80px_-20px_rgba(15,23,42,0.25)] backdrop-blur sm:p-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
+              <div className="inline-flex flex-wrap items-center gap-2 rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
                 <Brain className="h-4 w-4" />
                 StudyBloom AI
               </div>
@@ -181,12 +181,23 @@ export default function Home() {
                   Built for students balancing coursework, deadlines, and energy in one place with a coach that feels clear, calm, and practical.
                 </p>
               </div>
+              <div className="flex flex-wrap gap-2 pt-1 text-sm">
+                <span className="rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700">
+                  Auto-saved locally
+                </span>
+                <span className="rounded-full bg-violet-50 px-3 py-1 font-medium text-violet-700">
+                  Coach ready with or without AI
+                </span>
+              </div>
             </div>
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
               <div className="flex items-center gap-2 font-semibold">
                 <Sparkles className="h-4 w-4" />
                 Designed for focus, balance, and steady momentum.
               </div>
+              <p className="mt-2 text-amber-800/90">
+                Each plan is shaped around your actual energy, deadlines, and preferred study rhythm.
+              </p>
             </div>
           </div>
 
@@ -212,10 +223,18 @@ export default function Home() {
 
         <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-100">
-            <div className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-900">
-              <Target className="h-5 w-5 text-indigo-600" />
-              Plan details
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+                <Target className="h-5 w-5 text-indigo-600" />
+                Plan details
+              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
+                Build your week
+              </span>
             </div>
+            <p className="mb-4 text-sm text-slate-600">
+              Shape the plan around your courses, deadlines, and energy so it feels realistic instead of overwhelming.
+            </p>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="text-sm font-medium text-slate-700">
                 Courses
@@ -281,7 +300,7 @@ export default function Home() {
               />
             </label>
 
-            <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-4">
+            <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50/80 p-4">
               <label className="text-sm font-medium text-slate-700">
                 Choose your top study priority
                 <input
@@ -299,7 +318,7 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 p-4">
+            <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/80 p-4">
               <label className="text-sm font-medium text-slate-700">
                 Adjust for an urgent deadline
                 <input
