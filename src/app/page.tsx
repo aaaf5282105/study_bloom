@@ -358,6 +358,31 @@ export default function Home() {
                     <p className="text-2xl font-semibold">{summary?.recoveryDays ?? 0}</p>
                   </div>
                 </div>
+
+                <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4">
+                  <p className="text-sm text-cyan-200">Next best action</p>
+                  <p className="mt-2 text-sm text-slate-100">{plan.nextBestAction ?? "Start with one focused block and keep the rest of the day calm."}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="inline-flex rounded-full bg-white/10 px-3 py-1 text-sm font-medium text-cyan-100">
+                      Workload fit: {(plan.workloadFit ?? "balanced").toUpperCase()}
+                    </div>
+                    <div className="inline-flex rounded-full bg-white/10 px-3 py-1 text-sm font-medium text-cyan-100">
+                      Focus days: {plan.weeklyPlan.filter((day) => day.hours >= 2).length}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-white/10 bg-white/10 p-4">
+                  <p className="text-sm text-slate-400">Planner insights</p>
+                  <ul className="mt-3 space-y-2 text-sm text-slate-200">
+                    {plan.insights.map((insight) => (
+                      <li key={insight} className="flex items-start gap-2">
+                        <span className="mt-1 h-2 w-2 rounded-full bg-cyan-300" />
+                        <span>{insight}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             ) : (
               <div className="mt-6 rounded-2xl border border-dashed border-white/20 p-4 text-sm text-slate-400">

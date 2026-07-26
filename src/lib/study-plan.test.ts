@@ -54,4 +54,19 @@ describe("StudyBloom planning logic", () => {
     expect(adapted.weeklyPlan[0].focus).toContain("presentation");
     expect(adapted.coachingNotes[0]).toContain("presentation");
   });
+
+  it("offers a concrete next step for demanding weeks", () => {
+    const plan = buildFallbackPlan({
+      courses: ["Math", "History"],
+      deadlines: ["semester portfolio"],
+      weeklyHours: 24,
+      focusArea: "revision",
+      energy: "low",
+      lifestyle: "working part-time",
+      preferredDays: ["Mon", "Wed", "Fri"],
+    });
+
+    expect(plan.nextBestAction).toContain("Start");
+    expect(plan.workloadFit).toBe("heavy");
+  });
 });

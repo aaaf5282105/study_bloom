@@ -37,6 +37,8 @@ export interface StudyDayPlan {
   tasks: string[];
 }
 
+export type WorkloadFit = "light" | "balanced" | "heavy";
+
 export interface StudyPlan {
   headline: string;
   summary: string;
@@ -45,6 +47,9 @@ export interface StudyPlan {
   habitTips: string[];
   riskNotes: string[];
   priorityFocus: string;
+  nextBestAction: string;
+  workloadFit: WorkloadFit;
+  insights: string[];
 }
 
 function createDayLabel(index: number) {
@@ -54,6 +59,55 @@ function createDayLabel(index: number) {
 
 function getPreferredDays(input: StudyInput) {
   return input.preferredDays.length ? input.preferredDays : ["Mon", "Wed", "Fri"];
+}
+
+function determineWorkloadFit(input: StudyInput): WorkloadFit {
+  const normalizedInput = normalizeInput(input);
+  const hours = normalizedInput.weeklyHours;
+  const courseCount = normalizedInput.courses.length;
+
+  if (hours >= 22 || courseCount >= 3) {
+    return "heavy";
+  }
+
+  if (hours >= 12 || courseCount >= 2) {
+    return "balanced";
+  }
+
+  return "light";
+}
+
+function buildNextBestAction(input: StudyInput, workloadFit: WorkloadFit) {
+  const normalizedInput = normalizeInput(input);
+  const focus = normalizedInput.focusArea || "consistency";
+  const deadline = normalizedInput.deadlines[0] || "your next milestone";
+  const energyStyle = normalizedInput.energy === "high" ? "Start with a 35-minute sprint" : normalizedInput.energy === "low" ? "Start with a 20-minute reset" : "Start with a 25-minute sprint";
+
+  if (workloadFit === "heavy") {
+    return `${energyStyle} on ${focus}, then spend 10 minutes mapping the next step for ${deadline}. Protect one recovery block before your next deep session.`;
+  }
+
+  if (workloadFit === "light") {
+    return `${energyStyle} on ${focus}, then use the rest of the block to review ${deadline} and build momentum without overloading yourself.`;
+  }
+
+  return `${energyStyle} on ${focus}, then keep the rest of the day lighter while you make steady progress on ${deadline}.`;
+}
+
+function buildInsights(input: StudyInput, workloadFit: WorkloadFit, preferredDays: string[]) {
+  const normalizedInput = normalizeInput(input);
+  const deadline = normalizedInput.deadlines[0] || "your next milestone";
+  const targetHours = normalizedInput.weeklyHours;
+  const focusDays = preferredDays.length;
+  const recoveryDays = Math.max(1, 7 - focusDays);
+
+  return [
+    `Your strongest study windows appear to be ${preferredDays.slice(0, 3).join(", ")}.`,
+    workloadFit === "heavy"
+      ? `This is a demanding week, so keep ${recoveryDays} lighter days and protect the most important work for ${deadline}.`
+      : `This week is manageable, so use ${focusDays} focused days and leave room for recovery before ${deadline}.`,
+    `A practical target is ${Math.max(1, Math.round(targetHours / Math.max(1, focusDays)))} hours on your main study days.`,
+  ];
 }
 
 export function buildFallbackPlan(input: StudyInput): StudyPlan {
@@ -67,6 +121,9 @@ export function buildFallbackPlan(input: StudyInput): StudyPlan {
   const lifestyleLabel = normalizedInput.lifestyle;
   const preferredCount = Math.max(1, preferredDays.length);
   const dailyTarget = Math.max(1, Math.round(totalHours / preferredCount));
+  const workloadFit = determineWorkloadFit(normalizedInput);
+  const nextBestAction = buildNextBestAction(normalizedInput, workloadFit);
+  const insights = buildInsights(normalizedInput, workloadFit, preferredDays);
 
   const weeklyPlan: StudyDayPlan[] = [0, 1, 2, 3, 4, 5, 6].map((index) => {
     const day = createDayLabel(index);
@@ -115,13 +172,23 @@ export function buildFallbackPlan(input: StudyInput): StudyPlan {
       "Treat recovery time as part of the plan, not wasted time.",
     ],
     priorityFocus: focusLabel,
+    nextBestAction,
+    workloadFit,
+    insights,
   };
 }
 
 export function adaptPlanToPriority(plan: StudyPlan, priority: string): StudyPlan {
-  const updatedPlan = {
+  const updatedPlan: StudyPlan = {
     ...plan,
     priorityFocus: priority,
+    nextBestAction: `Start with ${priority} as your first move, then protect one lighter block so the week still feels sustainable.`,
+    insights: [
+      `The plan is now centered on ${priority}.`,
+      "Keep your first deep-work block protected and keep the rest of the day lighter.",
+      "Treat the next review block as a recovery checkpoint, not another heavy task.",
+    ],
+    workloadFit: plan.workloadFit === "light" ? "balanced" : plan.workloadFit,
     weeklyPlan: plan.weeklyPlan.map((day, index) => {
       const adjustedHours = day.hours + (index % 2 === 0 ? 0 : 1);
       const updatedTasks = day.tasks.map((task, taskIndex) => {
@@ -149,8 +216,15 @@ export function adaptPlanToPriority(plan: StudyPlan, priority: string): StudyPla
 }
 
 export function adaptPlanToDeadline(plan: StudyPlan, deadline: string): StudyPlan {
-  const updatedPlan = {
+  const updatedPlan: StudyPlan = {
     ...plan,
+    workloadFit: "heavy",
+    nextBestAction: `Start with the most urgent piece of ${deadline} first, then reduce optional review work so the next few days stay realistic.`,
+    insights: [
+      `The schedule is leaning into ${deadline} for the next few days.`,
+      "Keep the hardest work early, then drop the optional extras if energy gets tight.",
+      "Protect one short recovery block so this push does not drain your focus.",
+    ],
     weeklyPlan: plan.weeklyPlan.map((day, index) => {
       const isUrgentWindow = index < 3;
       const adjustedHours = isUrgentWindow ? day.hours + 1 : Math.max(1, day.hours - 1);
@@ -195,5 +269,8 @@ export function buildCoachResponse(input: StudyInput, userPrompt: string) {
   const deadline = normalizedInput.deadlines[0];
   const lifestyle = normalizedInput.lifestyle;
 
-  return `${systemPrompt}\n\nUser request: ${userPrompt}\n\nAdvice: Because you are balancing ${normalizedInput.courses.join(", ")} and ${deadline} while managing ${lifestyle}, I recommend a ${energyDescriptor} study rhythm. Protect ${normalizedInput.weeklyHours} hours by splitting work into short blocks, keep ${focus} as the priority, and reserve lighter days for recovery so your momentum stays strong.`;
+  const workloadFit = determineWorkloadFit(normalizedInput);
+  const nextBestAction = buildNextBestAction(normalizedInput, workloadFit);
+
+  return `${systemPrompt}\n\nUser request: ${userPrompt}\n\nAdvice: Because you are balancing ${normalizedInput.courses.join(", ")} and ${deadline} while managing ${lifestyle}, I recommend a ${energyDescriptor} study rhythm. Protect ${normalizedInput.weeklyHours} hours by splitting work into short blocks, keep ${focus} as the priority, and reserve lighter days for recovery so your momentum stays strong. Your first move should be: ${nextBestAction}`;
 }
