@@ -12,12 +12,22 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
+  margin: 0;
+  background: linear-gradient(135deg, #fdf2f8 0%, #f8fafc 45%, #eef2ff 100%);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
 * {
   box-sizing: border-box;
+}
+
+::selection {
+  background: #c7d2fe;
+  color: #111827;
 }

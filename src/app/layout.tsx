@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StudyBloom AI",
-  description: "A smart study planner that turns a busy week into a calm, realistic weekly schedule.",
+  title: "StudyBloom AI | Smart Student Planner",
+  description: "A polished study planner that turns a busy week into a realistic weekly schedule with AI coaching support.",
+  keywords: ["study planner", "AI learning", "student productivity", "academic planning"],
 };
 
 export default function RootLayout({
