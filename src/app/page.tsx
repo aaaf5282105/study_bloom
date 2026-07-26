@@ -63,6 +63,7 @@ export default function Home() {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCoaching, setIsCoaching] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const summary = useMemo(() => {
     if (!plan) return null;
@@ -74,27 +75,35 @@ export default function Home() {
   }, [plan]);
 
   async function generatePlan() {
-    setIsGenerating(true);
-    setStatus("Generating a personalized schedule...");
-
-    const generated = buildFallbackPlan(input);
-    setPlan(generated);
-    window.localStorage.setItem("study-bloom-plan", JSON.stringify(generated));
-
     try {
+      setIsGenerating(true);
+      setErrorMessage(null);
+      setStatus("Generating a personalized schedule...");
+
+      const generated = buildFallbackPlan(input);
+      setPlan(generated);
+      window.localStorage.setItem("study-bloom-plan", JSON.stringify(generated));
+
       const response = await fetch("/api/coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ input, prompt: coachPrompt || "Help me stay focused this week." }),
       });
+
+      if (!response.ok) {
+        throw new Error("Coach service unavailable");
+      }
+
       const data = await response.json();
       setCoachReply(data.reply || "I’m ready to help you build momentum.");
+      setStatus(`Plan ready for ${input.courses[0] ?? "your goals"}.`);
     } catch {
+      setErrorMessage("The coach is unavailable right now, but your plan was still created.");
       setCoachReply("Your coach is ready. Add a Groq key to unlock richer replies.");
+      setStatus("Plan created successfully.");
+    } finally {
+      setIsGenerating(false);
     }
-
-    setStatus(`Plan ready for ${input.courses[0] ?? "your goals"}.`);
-    setIsGenerating(false);
   }
 
   async function askCoach() {
@@ -103,23 +112,31 @@ export default function Home() {
       return;
     }
 
-    setIsCoaching(true);
-    setStatus("Your coach is crafting a personalized response...");
-
     try {
+      setIsCoaching(true);
+      setErrorMessage(null);
+      setStatus("Your coach is crafting a personalized response...");
+
       const response = await fetch("/api/coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ input, prompt: coachPrompt || "Help me stay focused this week." }),
       });
+
+      if (!response.ok) {
+        throw new Error("Coach service unavailable");
+      }
+
       const data = await response.json();
       setCoachReply(data.reply || "You're building a strong rhythm.");
+      setStatus("Coach guidance updated.");
     } catch {
+      setErrorMessage("Your coach could not respond just now, but your plan remains available.");
       setCoachReply("Your coach is ready. Add a Groq key to unlock richer replies.");
+      setStatus("Coach guidance updated.");
+    } finally {
+      setIsCoaching(false);
     }
-
-    setStatus("Coach guidance updated.");
-    setIsCoaching(false);
   }
 
   return (
@@ -248,6 +265,7 @@ export default function Home() {
               {isGenerating ? "Generating plan..." : "Generate weekly plan"}
             </button>
             <p className="mt-3 text-sm text-slate-500">{status}</p>
+            {errorMessage && <p className="mt-2 text-sm font-medium text-amber-700">{errorMessage}</p>}
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-slate-950 p-6 text-slate-100 shadow-lg shadow-slate-200">

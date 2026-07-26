@@ -10,6 +10,26 @@ export interface StudyInput {
   preferredDays: string[];
 }
 
+function sanitizeList(values: string[]) {
+  return values.map((value) => value.trim()).filter(Boolean);
+}
+
+function normalizeInput(input: StudyInput): StudyInput {
+  const courses = sanitizeList(input.courses);
+  const deadlines = sanitizeList(input.deadlines);
+  const preferredDays = sanitizeList(input.preferredDays);
+
+  return {
+    ...input,
+    courses: courses.length ? courses : ["Core coursework"],
+    deadlines: deadlines.length ? deadlines : ["your next milestone"],
+    focusArea: input.focusArea.trim() || "consistency",
+    lifestyle: input.lifestyle.trim() || "a busy student life",
+    preferredDays: preferredDays.length ? preferredDays : ["Mon", "Wed", "Fri"],
+    weeklyHours: Math.max(1, Number(input.weeklyHours) || 1),
+  };
+}
+
 export interface StudyDayPlan {
   day: string;
   focus: string;
@@ -36,13 +56,14 @@ function getPreferredDays(input: StudyInput) {
 }
 
 export function buildFallbackPlan(input: StudyInput): StudyPlan {
-  const courseList = input.courses.length ? input.courses : ["Core coursework"];
-  const deadlineList = input.deadlines.length ? input.deadlines : ["your next milestone"];
-  const totalHours = Math.max(1, input.weeklyHours);
-  const preferredDays = getPreferredDays(input);
-  const focusLabel = input.focusArea || "consistency";
-  const energyLabel = input.energy === "high" ? "high-energy" : input.energy === "low" ? "gentle" : "steady";
-  const lifestyleLabel = input.lifestyle || "a busy student life";
+  const normalizedInput = normalizeInput(input);
+  const courseList = normalizedInput.courses;
+  const deadlineList = normalizedInput.deadlines;
+  const totalHours = normalizedInput.weeklyHours;
+  const preferredDays = getPreferredDays(normalizedInput);
+  const focusLabel = normalizedInput.focusArea;
+  const energyLabel = normalizedInput.energy === "high" ? "high-energy" : normalizedInput.energy === "low" ? "gentle" : "steady";
+  const lifestyleLabel = normalizedInput.lifestyle;
   const preferredCount = Math.max(1, preferredDays.length);
   const dailyTarget = Math.max(1, Math.round(totalHours / preferredCount));
 
@@ -50,7 +71,7 @@ export function buildFallbackPlan(input: StudyInput): StudyPlan {
     const day = createDayLabel(index);
     const isPreferred = preferredDays.includes(day);
     const hours = isPreferred
-      ? Math.max(1, dailyTarget + (input.energy === "high" ? 1 : 0))
+      ? Math.max(1, dailyTarget + (normalizedInput.energy === "high" ? 1 : 0))
       : Math.max(1, Math.round(dailyTarget / 2));
 
     const tasks = isPreferred
@@ -75,7 +96,7 @@ export function buildFallbackPlan(input: StudyInput): StudyPlan {
 
   return {
     headline: `${courseList.join(", ")} gets a calmer rhythm`,
-    summary: `You have ${input.weeklyHours} study hours this week. The plan protects your energy with ${energyLabel} sessions, fits ${lifestyleLabel}, and keeps ${deadlineList[0]} in view.`,
+    summary: `You have ${normalizedInput.weeklyHours} study hours this week. The plan protects your energy with ${energyLabel} sessions, fits ${lifestyleLabel}, and keeps ${deadlineList[0]} in view.`,
     weeklyPlan,
     coachingNotes: [
       `Start with 20 minutes of ${focusLabel} work before opening your notes.`,
@@ -96,16 +117,17 @@ export function buildFallbackPlan(input: StudyInput): StudyPlan {
 }
 
 export function buildCoachResponse(input: StudyInput, userPrompt: string) {
+  const normalizedInput = normalizeInput(input);
   const systemPrompt = [
     "You are StudyBloom AI, a calm and practical study coach.",
     "You help students stay grounded, protect energy, and focus on the next useful action.",
     "Always answer with encouraging, specific advice and keep it concise.",
   ].join(" ");
 
-  const focus = input.focusArea || "your priorities";
-  const energyDescriptor = input.energy === "high" ? "high-energy" : input.energy === "low" ? "gentle" : "steady";
-  const deadline = input.deadlines[0] || "your next milestone";
-  const lifestyle = input.lifestyle || "a busy schedule";
+  const focus = normalizedInput.focusArea;
+  const energyDescriptor = normalizedInput.energy === "high" ? "high-energy" : normalizedInput.energy === "low" ? "gentle" : "steady";
+  const deadline = normalizedInput.deadlines[0];
+  const lifestyle = normalizedInput.lifestyle;
 
-  return `${systemPrompt}\n\nUser request: ${userPrompt}\n\nAdvice: Because you are balancing ${input.courses.join(", ")} and ${deadline} while managing ${lifestyle}, I recommend a ${energyDescriptor} study rhythm. Protect ${input.weeklyHours} hours by splitting work into short blocks, keep ${focus} as the priority, and reserve lighter days for recovery so your momentum stays strong.`;
+  return `${systemPrompt}\n\nUser request: ${userPrompt}\n\nAdvice: Because you are balancing ${normalizedInput.courses.join(", ")} and ${deadline} while managing ${lifestyle}, I recommend a ${energyDescriptor} study rhythm. Protect ${normalizedInput.weeklyHours} hours by splitting work into short blocks, keep ${focus} as the priority, and reserve lighter days for recovery so your momentum stays strong.`;
 }
