@@ -44,6 +44,7 @@ export interface StudyPlan {
   coachingNotes: string[];
   habitTips: string[];
   riskNotes: string[];
+  priorityFocus: string;
 }
 
 function createDayLabel(index: number) {
@@ -113,7 +114,38 @@ export function buildFallbackPlan(input: StudyInput): StudyPlan {
       "A short catch-up session is better than skipping the whole week.",
       "Treat recovery time as part of the plan, not wasted time.",
     ],
+    priorityFocus: focusLabel,
   };
+}
+
+export function adaptPlanToPriority(plan: StudyPlan, priority: string): StudyPlan {
+  const updatedPlan = {
+    ...plan,
+    priorityFocus: priority,
+    weeklyPlan: plan.weeklyPlan.map((day, index) => {
+      const adjustedHours = day.hours + (index % 2 === 0 ? 0 : 1);
+      const updatedTasks = day.tasks.map((task, taskIndex) => {
+        if (taskIndex === 0) {
+          return `${priority} first: ${task}`;
+        }
+        return task;
+      });
+
+      return {
+        ...day,
+        focus: index < 3 ? `Priority shift: ${priority}` : day.focus,
+        hours: Math.max(1, adjustedHours),
+        tasks: updatedTasks,
+      };
+    }),
+    coachingNotes: [
+      `Your plan now centers around ${priority}.`,
+      `Protect your first deep-work block for the most important task.`,
+      `Keep a smaller review block later to stay realistic.`,
+    ],
+  };
+
+  return updatedPlan;
 }
 
 export function buildCoachResponse(input: StudyInput, userPrompt: string) {

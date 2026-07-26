@@ -13,7 +13,7 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react";
-import { buildFallbackPlan, type StudyInput, type StudyPlan } from "@/lib/study-plan";
+import { adaptPlanToPriority, buildFallbackPlan, type StudyInput, type StudyPlan } from "@/lib/study-plan";
 
 const initialInput: StudyInput = {
   courses: ["Mathematics", "Writing"],
@@ -54,6 +54,7 @@ export default function Home() {
   const [plan, setPlan] = useState<StudyPlan | null>(() => loadSavedPlan());
   const [coachPrompt, setCoachPrompt] = useState("Help me stay focused this week.");
   const [coachReply, setCoachReply] = useState<string | null>(null);
+  const [priorityChoice, setPriorityChoice] = useState("exam prep");
   const [status, setStatus] = useState(() => {
     if (typeof window === "undefined") {
       return "Ready to build your plan.";
@@ -137,6 +138,17 @@ export default function Home() {
     } finally {
       setIsCoaching(false);
     }
+  }
+
+  function applyPriority() {
+    if (!plan) {
+      return;
+    }
+
+    const adapted = adaptPlanToPriority(plan, priorityChoice);
+    setPlan(adapted);
+    window.localStorage.setItem("study-bloom-plan", JSON.stringify(adapted));
+    setStatus(`Updated your plan around ${priorityChoice}.`);
   }
 
   return (
@@ -256,6 +268,25 @@ export default function Home() {
                 onChange={(event) => setInput({ ...input, preferredDays: parseList(event.target.value) })}
               />
             </label>
+
+            <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-4">
+              <label className="text-sm font-medium text-slate-700">
+                Choose your top study priority
+                <input
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 outline-none transition focus:border-indigo-400"
+                  value={priorityChoice}
+                  onChange={(event) => setPriorityChoice(event.target.value)}
+                />
+              </label>
+              <button
+                onClick={applyPriority}
+                className="mt-3 inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
+              >
+                <Target className="h-4 w-4" />
+                Apply priority shift
+              </button>
+            </div>
+
             <button
               onClick={generatePlan}
               disabled={isGenerating}
@@ -278,6 +309,10 @@ export default function Home() {
                 <div>
                   <h2 className="text-xl font-semibold">{plan.headline}</h2>
                   <p className="mt-2 text-sm text-slate-300">{plan.summary}</p>
+                  <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-cyan-500/15 px-3 py-1 text-sm font-medium text-cyan-200">
+                    <Target className="h-4 w-4" />
+                    Priority focus: {plan.priorityFocus}
+                  </div>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
