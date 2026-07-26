@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCoachResponse, buildFallbackPlan } from "./study-plan";
+import { adaptPlanToDeadline, buildCoachResponse, buildFallbackPlan } from "./study-plan";
 
 describe("StudyBloom planning logic", () => {
   it("creates a balanced weekly plan with realistic hours", () => {
@@ -36,5 +36,22 @@ describe("StudyBloom planning logic", () => {
     expect(reply).toContain("exam prep");
     expect(reply).toContain("final exam");
     expect(reply).toContain("working part-time");
+  });
+
+  it("adapts the weekly plan when a deadline becomes urgent", () => {
+    const plan = buildFallbackPlan({
+      courses: ["Math"],
+      deadlines: ["presentation"],
+      weeklyHours: 10,
+      focusArea: "revision",
+      energy: "steady",
+      lifestyle: "busy schedule",
+      preferredDays: ["Mon", "Wed", "Fri"],
+    });
+
+    const adapted = adaptPlanToDeadline(plan, "presentation");
+
+    expect(adapted.weeklyPlan[0].focus).toContain("presentation");
+    expect(adapted.coachingNotes[0]).toContain("presentation");
   });
 });

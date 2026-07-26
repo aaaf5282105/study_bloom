@@ -13,7 +13,7 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react";
-import { adaptPlanToPriority, buildFallbackPlan, type StudyInput, type StudyPlan } from "@/lib/study-plan";
+import { adaptPlanToDeadline, adaptPlanToPriority, buildFallbackPlan, type StudyInput, type StudyPlan } from "@/lib/study-plan";
 
 const initialInput: StudyInput = {
   courses: ["Mathematics", "Writing"],
@@ -55,6 +55,7 @@ export default function Home() {
   const [coachPrompt, setCoachPrompt] = useState("Help me stay focused this week.");
   const [coachReply, setCoachReply] = useState<string | null>(null);
   const [priorityChoice, setPriorityChoice] = useState("exam prep");
+  const [deadlineChoice, setDeadlineChoice] = useState("final exam");
   const [status, setStatus] = useState(() => {
     if (typeof window === "undefined") {
       return "Ready to build your plan.";
@@ -149,6 +150,17 @@ export default function Home() {
     setPlan(adapted);
     window.localStorage.setItem("study-bloom-plan", JSON.stringify(adapted));
     setStatus(`Updated your plan around ${priorityChoice}.`);
+  }
+
+  function applyDeadline() {
+    if (!plan) {
+      return;
+    }
+
+    const adapted = adaptPlanToDeadline(plan, deadlineChoice);
+    setPlan(adapted);
+    window.localStorage.setItem("study-bloom-plan", JSON.stringify(adapted));
+    setStatus(`Adjusted your schedule for ${deadlineChoice}.`);
   }
 
   return (
@@ -284,6 +296,24 @@ export default function Home() {
               >
                 <Target className="h-4 w-4" />
                 Apply priority shift
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 p-4">
+              <label className="text-sm font-medium text-slate-700">
+                Adjust for an urgent deadline
+                <input
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 outline-none transition focus:border-indigo-400"
+                  value={deadlineChoice}
+                  onChange={(event) => setDeadlineChoice(event.target.value)}
+                />
+              </label>
+              <button
+                onClick={applyDeadline}
+                className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-500"
+              >
+                <Clock3 className="h-4 w-4" />
+                Apply deadline rush
               </button>
             </div>
 

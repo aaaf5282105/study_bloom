@@ -148,6 +148,40 @@ export function adaptPlanToPriority(plan: StudyPlan, priority: string): StudyPla
   return updatedPlan;
 }
 
+export function adaptPlanToDeadline(plan: StudyPlan, deadline: string): StudyPlan {
+  const updatedPlan = {
+    ...plan,
+    weeklyPlan: plan.weeklyPlan.map((day, index) => {
+      const isUrgentWindow = index < 3;
+      const adjustedHours = isUrgentWindow ? day.hours + 1 : Math.max(1, day.hours - 1);
+      const updatedTasks = day.tasks.map((task, taskIndex) => {
+        if (taskIndex === 2 && isUrgentWindow) {
+          return `Deadline prep: ${deadline}`;
+        }
+        return task;
+      });
+
+      return {
+        ...day,
+        focus: isUrgentWindow ? `Deadline pressure: ${deadline}` : day.focus,
+        hours: adjustedHours,
+        tasks: updatedTasks,
+      };
+    }),
+    coachingNotes: [
+      `Your schedule now emphasizes ${deadline}.`,
+      `Use the next few days to reduce task load and protect focus.`,
+      `Keep one lighter block so recovery still happens.`,
+    ],
+    riskNotes: [
+      `If ${deadline} gets closer, reduce nonessential tasks first.`,
+      "Protect sleep and recovery so the final push does not break your rhythm.",
+    ],
+  };
+
+  return updatedPlan;
+}
+
 export function buildCoachResponse(input: StudyInput, userPrompt: string) {
   const normalizedInput = normalizeInput(input);
   const systemPrompt = [
