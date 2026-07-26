@@ -51,7 +51,7 @@ function loadSavedPlan(): StudyPlan | null {
 
 export default function Home() {
   const [input, setInput] = useState<StudyInput>(initialInput);
-  const [plan, setPlan] = useState<StudyPlan | null>(() => loadSavedPlan());
+  const [plan, setPlan] = useState<StudyPlan | null>(() => (typeof window === "undefined" ? null : loadSavedPlan()));
   const [coachPrompt, setCoachPrompt] = useState("Help me stay focused this week.");
   const [coachReply, setCoachReply] = useState<string | null>(null);
   const [priorityChoice, setPriorityChoice] = useState("exam prep");
